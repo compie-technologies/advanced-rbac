@@ -4,12 +4,20 @@ export abstract class RoleBase{
 
     public readonly grantMap: Map<string,Grant>;
 
+    public getGrant(name: string): Grant{
+        return this.grantMap.get(name);
+    }
+
+    public appendGrant(grant: Grant){
+        this.grantMap.set(grant.name, grant);
+    }
+
     public listGrants():Grant[]{
         return Array.from(this.grantMap.values());
     }
 
     async has(requiredGrant:RequiredGrant):Promise<[Grant,string[]]> {
-        let grant: Grant = this.grantMap.get(requiredGrant.name);
+        let grant: Grant = this.getGrant(requiredGrant.name);
         if (!grant) {
             return [undefined,undefined];
         }
