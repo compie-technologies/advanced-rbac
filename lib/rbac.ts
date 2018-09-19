@@ -1,7 +1,6 @@
 import {Role} from "./role";
 import {Grant, Possession, RequiredGrant} from "./grant";
 import {RoleSet} from "./role-set";
-import {PermissionError} from "./permission-error";
 import {RoleImpl} from "./role-impl";
 import {GrantImpl} from "./grant-impl";
 import {Permission} from "./permission";
@@ -9,31 +8,32 @@ import {PermissionImpl} from "./permission-impl";
 
 export class RBAC {
 
-    public squashRoles(roles: Role[]):Role{
+    private constructor(){}
+
+    public static squashRoles(roles: Role[]):Role{
         return new RoleSet(roles);
     }
 
-    public async has(role:Role, requiredGrant: RequiredGrant):Promise<Permission>{
+    public static async hasMultiple(role:Role, requiredGrants: RequiredGrant[]):Promise<[boolean, Permission[]]>{
+        const permissions: Permission[] = [];
+        let granted: boolean = true;
+        for (let grant of requiredGrants){
+            const perm: Permission = await RBAC.has(role,grant);
+            if (!perm.granted) {
+                granted = false;
+            }
+            permissions.push(perm);
+        }
+        return [granted, permissions];
+    }
+
+    public static async has(role:Role, requiredGrant: RequiredGrant):Promise<Permission>{
         const [grant, attr] = await role.has(requiredGrant);
         if (grant){
             return new PermissionImpl(true, grant, attr)
         }else {
             return new PermissionImpl(false, undefined)
         }
-    }
-
-    public async can(role:Role, requiredGrants: RequiredGrant[]):Promise<boolean>{
-        let missingGrants:Grant[] = [];
-        for (let requiredGrant of requiredGrants){
-            const [grant, attr] = await role.has(requiredGrant);
-            if (grant){
-                missingGrants.push(grant);
-            }
-        }
-        if (missingGrants.length > 0){
-            throw new PermissionError('missing grants', missingGrants);
-        }
-        return true;
     }
 
     public static constructGrant(name: string,

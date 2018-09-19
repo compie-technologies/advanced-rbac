@@ -9,7 +9,6 @@ export interface Grant {
     readonly name: string;
     readonly possession: Possession;
     readonly attributes: string[];
-
 }
 
 export interface RequiredGrant{

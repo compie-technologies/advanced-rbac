@@ -19,7 +19,6 @@ export class RoleSet extends RoleBase implements Role{
                 this.grantMap.set(grant.name,grant);
             }
         }
-
         this.id = idList;
     }
 
